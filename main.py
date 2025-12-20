@@ -6,38 +6,34 @@ import streamlit as st
 from datetime import datetime
 import time
 import requests
-
-# ===================== CONFIG =====================
-OPENROUTER_API_KEY = "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"
-MODEL_NAME = "google/gemma-2-9b-it:free"
+from bs4 import BeautifulSoup
 
 
-
-# ===================== AI FUNCTION =====================
 def ask_fenet_ai(message):
-    try:
-        response = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "model": MODEL_NAME,
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": "You are FENET, a helpful homework assistant for students. Be clear, friendly, and short."
-                    },
-                    {"role": "user", "content": message}
-                ]
-            },
-            timeout=30
-        )
-        return response.json()["choices"][0]["message"]["content"]
-    except Exception as e:
-        return "⚠️ FENET is offline right now."
+    msg = message.lower()
 
+    if "hi" in msg or "hello" in msg:
+        return "<p>Hello 👋 I’m FENET. Ask me about studying or math.</p>"
+
+    query = msg.replace(" ", "_")
+    url = f"https://en.wikipedia.org/wiki/{query}"
+
+    try:
+        r = requests.get(url, timeout=5)
+        if r.status_code != 200:
+            raise Exception("Page not found")
+
+        soup = BeautifulSoup(r.text, "html.parser")
+
+        for p in soup.find_all("p"):
+            text = p.get_text().strip()
+            if len(text) > 80:
+                return f"<p><b>FENET AI:</b> {text}</p>"
+
+        return "<p>I found the topic, but couldn’t extract a clear explanation.</p>"
+
+    except:
+        return "<p>Sorry, I couldn’t find any information on that topic.</p>"
 # ======= STYLE =======
 st.markdown("""
 <style>
@@ -267,9 +263,20 @@ if "chat" not in st.session_state:
 user_msg = st.text_input("Ask FENET about homework, deadlines, or studying")
 
 if st.button("Send 🧠") and user_msg:
-    reply = ask_fenet_ai(user_msg)
     st.session_state.chat.append(("You", user_msg))
+    with st.spinner("FENET is thinking..."):
+        time.sleep(1.5)
+        reply = ask_fenet_ai(user_msg)
     st.session_state.chat.append(("FENET", reply))
+
+# Display chat history (last 6 messages)
+def save_chathistory():
+    with open("chat_history.txt", "w") as f:
+        for role, msg in st.session_state.chat:
+            f.write(f"{role}: {msg}\n")
+
+
+
 
 for role, msg in st.session_state.chat[-6:]:
     if role == "You":
