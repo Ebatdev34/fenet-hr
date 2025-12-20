@@ -9,7 +9,8 @@ import requests
 
 # ===================== CONFIG =====================
 OPENROUTER_API_KEY = "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"
-MODEL_NAME = "mistralai/mistral-7b-instruct:free"
+MODEL_NAME = "google/gemma-2-9b-it:free"
+
 
 
 # ===================== AI FUNCTION =====================
