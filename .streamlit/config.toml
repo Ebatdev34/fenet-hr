@@ -1,0 +1,17 @@
+# Streamlit configuration for FENET
+# Cyber-punk neon theme — high contrast, futuristic, and bold.
+
+[theme]
+base = "dark"
+primaryColor = "#FF1AC6"
+backgroundColor = "#050010"
+secondaryBackgroundColor = "#0B0F1A"
+textColor = "#E6F7FF"
+font = "monospace"
+
+[server]
+headless = true
+enableCORS = false
+
+[browser]
+gatherUsageStats = false
