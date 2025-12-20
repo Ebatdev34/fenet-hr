@@ -5,8 +5,37 @@
 import streamlit as st
 from datetime import datetime
 import time
+import requests
 
-st.set_page_config(page_title="FENET", page_icon="⏰", layout="centered")
+# ===================== CONFIG =====================
+OPENROUTER_API_KEY = "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"
+MODEL_NAME = "mistralai/mistral-7b-instruct:free"
+
+
+# ===================== AI FUNCTION =====================
+def ask_fenet_ai(message):
+    try:
+        response = requests.post(
+            "https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": MODEL_NAME,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are FENET, a helpful homework assistant for students. Be clear, friendly, and short."
+                    },
+                    {"role": "user", "content": message}
+                ]
+            },
+            timeout=30
+        )
+        return response.json()["choices"][0]["message"]["content"]
+    except Exception as e:
+        return "⚠️ FENET is offline right now."
 
 # ======= STYLE =======
 st.markdown("""
@@ -228,6 +257,24 @@ for idx, alarm in enumerate(st.session_state.alarms):
     done_key = f"done_{idx}"
     if st.button("Mark Done ✅", key=done_key):
         st.session_state.alarms[idx]['done'] = True
+st.divider()
+st.subheader("🧠 Ask FENET")
+
+if "chat" not in st.session_state:
+    st.session_state.chat = []
+
+user_msg = st.text_input("Ask FENET about homework, deadlines, or studying")
+
+if st.button("Send 🧠") and user_msg:
+    reply = ask_fenet_ai(user_msg)
+    st.session_state.chat.append(("You", user_msg))
+    st.session_state.chat.append(("FENET", reply))
+
+for role, msg in st.session_state.chat[-6:]:
+    if role == "You":
+        st.markdown(f"**🧍 You:** {msg}")
+    else:
+        st.markdown(f"**🤖 FENET:** {msg}")
 
 # ======= FOOTER =======
 st.divider()
