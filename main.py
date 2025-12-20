@@ -10,11 +10,23 @@ from bs4 import BeautifulSoup
 
 
 def ask_fenet_ai(message):
-    msg = message.lower()
+    msg = message.lower().strip()
 
+    # simple greetings
     if "hi" in msg or "hello" in msg:
         return "<p>Hello 👋 I’m FENET. Ask me about studying or math.</p>"
 
+    # quick math evaluator
+    try:
+        # safely evaluate simple expressions
+        allowed_chars = "0123456789+-*/(). "
+        if all(c in allowed_chars for c in msg):
+            answer = eval(msg)
+            return f"<p><b>FENET AI:</b> {msg} = {answer}</p>"
+    except:
+        pass
+
+    # fallback to Wikipedia scraping
     query = msg.replace(" ", "_")
     url = f"https://en.wikipedia.org/wiki/{query}"
 
@@ -22,18 +34,15 @@ def ask_fenet_ai(message):
         r = requests.get(url, timeout=5)
         if r.status_code != 200:
             raise Exception("Page not found")
-
         soup = BeautifulSoup(r.text, "html.parser")
-
         for p in soup.find_all("p"):
             text = p.get_text().strip()
             if len(text) > 80:
                 return f"<p><b>FENET AI:</b> {text}</p>"
-
         return "<p>I found the topic, but couldn’t extract a clear explanation.</p>"
-
     except:
-        return "<p>Sorry, I couldn’t find any information on that topic.</p>"
+        return "<p>⚠️ I couldn’t access the internet. Try a simpler question.</p>"
+
 # ======= STYLE =======
 st.markdown("""
 <style>
