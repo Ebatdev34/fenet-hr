@@ -7,9 +7,12 @@ from datetime import datetime
 import time
 import requests
 from bs4 import BeautifulSoup
-
-HF_API_TOKEN = "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"
-HF_MODEL = "Qwen/Qwen2.5-Coder-7B-Instruct"  # safer than 30B
+import os
+os.getenv("api_key.env")
+from dotenv import load_dotenv
+load_dotenv("api_key.env")
+HF_API_TOKEN = os.getenv("HF_KEY")
+HF_MODEL = "camel‑7b‑instruct"  # safer than 30B
 
 HF_HEADERS = {
     "Authorization": f"Bearer {HF_API_TOKEN}",
