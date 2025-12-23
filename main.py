@@ -7,43 +7,64 @@ from datetime import datetime
 import time
 import requests
 from bs4 import BeautifulSoup
+
+HF_API_TOKEN = "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"
+HF_MODEL = "Qwen/Qwen2.5-Coder-7B-Instruct"  # safer than 30B
+
+HF_HEADERS = {
+    "Authorization": f"Bearer {HF_API_TOKEN}",
+    "Content-Type": "application/json"
+}
+
 def ask_fenet_ai(message):
     msg = message.lower().strip()
 
-    # Built-in quick math / study answers
+    # Built-in quick answers
     math_answers = {
         "1+1": "2",
         "2+2": "4",
-        "pythagorean theorem": "In a right triangle: a² + b² = c², where c is the hypotenuse.",
-        "area of circle": "Area = π * r², where r is the radius.",
-        "hello": "Hello 👋 I’m FENET. Ask me about studying or math.",
-        "hi": "Hello 👋 I’m FENET. Ask me about studying or math."
+        "pythagorean theorem": "In a right triangle: a² + b² = c².",
+        "area of circle": "Area = π × r².",
+        "hello": "Hello 👋 I’m FENET. Ask me about studying or homework.",
+        "hi": "Hello 👋 I’m FENET. Ask me about studying or homework."
     }
-    if msg in math_answers:
-        return f"<p>🤖 FENET: {math_answers[msg]}</p>"
 
-    # Wikipedia scraping fallback
-    import requests
-    from bs4 import BeautifulSoup
-    query = msg.replace(" ", "_")
-    url = f"https://en.wikipedia.org/wiki/{query}"
+    if msg in math_answers:
+        return math_answers[msg]
+
+    # ===== AI CALL =====
+    payload = {
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are FENET, a dark, cool, helpful homework assistant. Be short, clear, and motivating."
+            },
+            {
+                "role": "user",
+                "content": message
+            }
+        ],
+        "max_tokens": 400
+    }
 
     try:
-        r = requests.get(url, timeout=5)
-        if r.status_code != 200:
-            raise Exception("Page not found")
-        soup = BeautifulSoup(r.text, "html.parser")
+        r = requests.post(
+            "https://router.huggingface.co/v1/chat/completions",
+            headers=HF_HEADERS,
+            json=payload,
+            timeout=20
+        )
 
-        # Get first paragraph with some text
-        for p in soup.find_all("p"):
-            text = p.get_text().strip()
-            if len(text) > 50:
-                return f"<p>🤖 FENET: {text}</p>"
+        if r.status_code == 200:
+            data = r.json()
+            return data["choices"][0]["message"]["content"]
 
-        return "<p>🤖 FENET: I found the topic, but couldn’t extract a clear explanation.</p>"
+        else:
+            return f"⚠️ AI error {r.status_code}"
 
-    except Exception as e:
-        return "<p>⚠️ I couldn’t access the internet. Try a simpler question.</p>"
+    except Exception:
+        pass  # fall through to wiki
+
 
 
 
