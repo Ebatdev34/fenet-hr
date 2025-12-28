@@ -8,67 +8,30 @@ import time
 import requests
 from bs4 import BeautifulSoup
 import os
-os.getenv("api_key.env")
-from dotenv import load_dotenv
-load_dotenv("api_key.env")
-HF_API_TOKEN = os.getenv("HF_KEY")
-HF_MODEL = "camel‑7b‑instruct"  # safer than 30B
 
-HF_HEADERS = {
-    "Authorization": f"Bearer {HF_API_TOKEN}",
-    "Content-Type": "application/json"
-}
+WIKI_API = "https://en.wikipedia.org/api/rest_v1/page/summary/{}"
 
-def ask_fenet_ai(message):
-    msg = message.lower().strip()
-
-    # Built-in quick answers
-    math_answers = {
-        "1+1": "2",
-        "2+2": "4",
-        "pythagorean theorem": "In a right triangle: a² + b² = c².",
-        "area of circle": "Area = π × r².",
-        "hello": "Hello 👋 I’m FENET. Ask me about studying or homework.",
-        "hi": "Hello 👋 I’m FENET. Ask me about studying or homework."
-    }
-
-    if msg in math_answers:
-        return math_answers[msg]
-
-    # ===== AI CALL =====
-    payload = {
-        "messages": [
-            {
-                "role": "system",
-                "content": "You are FENET, a dark, cool, helpful homework assistant. Be short, clear, and motivating."
-            },
-            {
-                "role": "user",
-                "content": message
-            }
-        ],
-        "max_tokens": 400
-    }
+def ask_fenet_ai(query: str) -> str:
+    query = query.strip()
+    if not query:
+        return "Ask me anything—homework, history, science … I’ll check Wikipedia."
 
     try:
-        r = requests.post(
-            "https://router.huggingface.co/v1/chat/completions",
-            headers=HF_HEADERS,
-            json=payload,
-            timeout=20
-        )
-
-        if r.status_code == 200:
-            data = r.json()
-            return data["choices"][0]["message"]["content"]
-
+        resp = requests.get(WIKI_API.format(requests.utils.quote(query)),
+                            timeout=6)
+        if resp.status_code == 200:
+            data = resp.json()
+            return data.get("extract", "Wikipedia had nothing on that.")
+        elif resp.status_code == 404:
+            return f"Wikipedia doesn’t have a page for “{query}”."
         else:
-            return f"⚠️ AI error {r.status_code}"
+            return f"Wikipedia answered with HTTP {resp.status_code}."
+    except requests.exceptions.Timeout:
+        return "Request timed out—Wikipedia is slow right now."
+    except Exception as e:
+        return f"Network hiccup: {e}"
 
-    except Exception:
-        pass  # fall through to wiki
-
-
+print(ask_fenet_ai("Artificial intelligence"))    
 
 
 # ======= STYLE =======
