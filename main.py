@@ -31,7 +31,6 @@ def ask_fenet_ai(query: str) -> str:
     except Exception as e:
         return f"Network hiccup: {e}"
 
-print(ask_fenet_ai("Artificial intelligence"))    
 
 
 # ======= STYLE =======
