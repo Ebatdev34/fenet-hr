@@ -33,6 +33,22 @@ def ask_fenet_ai(query: str) -> str:
 
 
 
+
+# Add audio playback
+def play_ring():
+    # Streamlit can embed audio files (mp3/wav) directly
+    audio_file = open("ring.mp3", "rb")  # place a ring.mp3 in your project folder
+    audio_bytes = audio_file.read()
+    st.audio(audio_bytes, format="audio/mp3", start_time=0)
+
+# Example alarm check
+def check_alarm(target_time: str):
+    now = datetime.now().strftime("%H:%M")
+    if now == target_time:
+        st.markdown("<div class='alarm'>⏰ Alarm ringing!</div>", unsafe_allow_html=True)
+        play_ring()
+
+
 # ======= STYLE =======
 st.markdown("""
 <style>
