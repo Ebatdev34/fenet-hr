@@ -574,7 +574,7 @@ elif page == "📝 Notes":
 # ============================================================
 
 st.markdown("---")
-st.caption("⚡ FENET — built by Eba for his sister · no excuses")
+st.caption("⚡ FENET· no excuses")
 
 time.sleep(30)
 st.rerun()
