@@ -1,5 +1,5 @@
 # ============================================================
-#  FENET  —  Built by Eba, for his sister
+#  FENET  — 
 #  Streamlit | Cyberpunk UI | Wikipedia + Local Knowledge
 #  Features: Q&A · Alarms · Flashcards · Quiz · Notes
 # ============================================================
